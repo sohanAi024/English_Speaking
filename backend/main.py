@@ -46,7 +46,7 @@ class AudioTranscriptionResponse(BaseModel):
 
 class EnglishChatBot:
     def __init__(self):
-        self.mistral_api_key = os.getenv("MISTRAL_API_KEY","a4Cuk8IlEzJHgJJoRMaZgj33FLTKTZTv")
+        self.mistral_api_key = "a4Cuk8IlEzJHgJJoRMaZgj33FLTKTZTv"
         if not self.mistral_api_key:
             raise ValueError("MISTRAL_API_KEY not found in environment variables")
         
