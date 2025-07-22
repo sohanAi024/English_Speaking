@@ -18,9 +18,10 @@ load_dotenv()
 
 app = FastAPI(title="English Conversation Chatbot API", version="1.0.0")
 
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # In production, specify your frontend URL e.g., "http://localhost:8080"
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -142,6 +143,11 @@ try:
 except ValueError as e:
     print(f"Configuration Error: {str(e)}")
     chatbot = None
+
+
+@app.get("/")
+def home():
+    return {"message": "Hello from FastAPI"}
 
 @app.get("/")
 async def root():
