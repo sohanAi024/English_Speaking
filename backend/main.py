@@ -15,13 +15,12 @@ import base64
 
 # It's better practice to call load_dotenv() at the top level
 load_dotenv()
+
 app = FastAPI(title="English Conversation Chatbot API", version="1.0.0")
-
-
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["*"],  # In production, specify your frontend URL e.g., "http://localhost:8080"
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -47,39 +46,37 @@ class AudioTranscriptionResponse(BaseModel):
 
 class EnglishChatBot:
     def __init__(self):
-        self.mistral_api_key = "a4Cuk8IlEzJHgJJoRMaZgj33FLTKTZTv"
+        self.mistral_api_key = os.getenv("GROK_API_KEY")
         if not self.mistral_api_key:
-            raise ValueError("MISTRAL_API_KEY not found in environment variables")
-        
+            raise ValueError("GROK_API_KEY not found in environment variables")
+
         self.recognizer = sr.Recognizer()
         
         self.system_prompt = """
-You are an English conversation tutor. When the user speaks (converted to text), analyze their sentence.
+You are an English conversation tutor. Analyze the user's sentence.
 
 If the sentence is correct:
-- Say: "✅ Looks good!" and suggest 1 natural alternative.
-- Ask a simple follow-up question to continue the conversation.
+- Say: "✅ Looks good!"
+- Suggest ONE natural alternative.
+- Ask a simple follow-up question.
 
 If the sentence has mistakes:
 - Show:
   ✅ Corrected Sentence: [Correction]
-  ❌ Mistake: [Brief description of mistakes]
+  ❌ Mistake(s): List the grammar mistakes (e.g., wrong tense, missing article)
   💡 Alternatives:
     - [Alternative 1]
     - [Alternative 2]
-- Then ask a follow-up question to keep the conversation going.
+- Ask a follow-up question.
 
-Keep responses short, friendly, and conversational.
-
-Example:
-User: "He go school yesterday."
-AI:
-✅ Corrected Sentence: "He went to school yesterday."
-❌ Mistake: Used 'go' instead of 'went'
+Format:
+✅ Corrected Sentence: ...
+❌ Mistake(s): ...
 💡 Alternatives:
-- "Yesterday, he went to school."
-- "He attended school yesterday."
-❓ What did you do yesterday?
+- ...
+- ...
+❓ Follow-up question
+
 """
 
 
@@ -105,31 +102,42 @@ AI:
         except Exception as e:
             return {"text": "", "success": False, "error": f"Error processing audio: {str(e)}"}
 
-    async def generate_response(self, user_input: str, conversation_history: List[ChatMessage]) -> str:
-        """Generate AI response using Mistral API"""
+
+
+class EnglishChatBot:
+    def __init__(self):
+        import os
+        self.grok_api_key = os.getenv("GROK_API_KEY")
+        if not self.grok_api_key:
+            raise ValueError("GROK_API_KEY is missing. Please set it in your environment variables.")
+        self.system_prompt = "You are an English conversation tutor. Correct mistakes and provide suggestions."
+
+    async def generate_response(self, user_input: str, conversation_history: List[dict]) -> str:
+        """Generate AI response using Grok API"""
         try:
             messages = [{"role": "system", "content": self.system_prompt}]
             # Add last 20 messages from history
-            messages.extend([{"role": msg.role, "content": msg.content} for msg in conversation_history[-20:]])
+            messages.extend([{"role": msg["role"], "content": msg["content"]} for msg in conversation_history[-20:]])
             messages.append({"role": "user", "content": user_input})
 
             headers = {
-                "Authorization": f"Bearer {self.mistral_api_key}",
+                "Authorization": f"Bearer {self.grok_api_key}",
                 "Content-Type": "application/json",
             }
             data = {
-                "model": "mistral-large-latest", # Using the latest model
+                "model": "grok-beta",  # or use "grok-1" if available
                 "messages": messages,
                 "max_tokens": 500,
                 "temperature": 0.7,
             }
+
             response = requests.post(
-                "https://api.mistral.ai/v1/chat/completions",
+                "https://api.x.ai/v1/chat/completions",  # Grok API endpoint
                 headers=headers,
                 json=data,
                 timeout=30
             )
-            response.raise_for_status() # Raise an exception for bad status codes
+            response.raise_for_status()
             result = response.json()
             return result["choices"][0]["message"]["content"]
         except requests.exceptions.RequestException as e:
@@ -137,18 +145,14 @@ AI:
         except Exception as e:
             return f"An error occurred while generating response: {str(e)}"
 
+
 # Initialize chatbot
 try:
     chatbot = EnglishChatBot()
 except ValueError as e:
     print(f"Configuration Error: {str(e)}")
     chatbot = None
-
-
-@app.get("/")
-def home():
-    return {"message": "Hello from FastAPI"}
-
+    
 @app.get("/")
 async def root():
     return {"message": "English Conversation Chatbot API", "status": "running"}
