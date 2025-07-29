@@ -4,9 +4,10 @@ document.addEventListener("DOMContentLoaded", () => {
     const textInput = document.getElementById("text-input");
     const sendButton = document.getElementById("send-button");
     const recordButton = document.getElementById("record-button");
+// script.js
+    const API_BASE_URL = "http://localhost:8001";
+    const WEBSOCKET_URL = "ws://localhost:8001/ws/chat";
 
-    const API_BASE_URL = "http://localhost:8000";
-    const WEBSOCKET_URL = "ws://localhost:8000/ws/chat";
 
     let conversationHistory = [];
     let mediaRecorder;

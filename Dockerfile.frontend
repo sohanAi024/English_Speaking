@@ -1,7 +1,6 @@
-# Stage 1: Use nginx to serve static site
+# Dockerfile.frontend
 FROM nginx:alpine
 
-# Copy your frontend files into nginx's web root
 COPY frontend/ /usr/share/nginx/html
 
 EXPOSE 80

@@ -5,3 +5,7 @@ requests
 pydantic
 speechrecognition
 python-multipart
+python-engineio
+python-socketio
+starlette
+websockets 
