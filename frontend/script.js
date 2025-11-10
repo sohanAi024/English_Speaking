@@ -4,9 +4,14 @@ document.addEventListener("DOMContentLoaded", () => {
     const textInput = document.getElementById("text-input");
     const sendButton = document.getElementById("send-button");
     const recordButton = document.getElementById("record-button");
-// script.js
-    const API_BASE_URL = "http://localhost:8001";
-    const WEBSOCKET_URL = "ws://localhost:8001/ws/chat";
+    // script.js
+    const ENV = (typeof window !== "undefined" && window.ENV) ? window.ENV : {};
+    const DEFAULT_HTTP = (location.hostname === "localhost" || location.hostname === "127.0.0.1")
+        ? "http://localhost:8001"
+        : "https://english-speaking-backend.onrender.com";
+    const API_BASE_URL = ENV.API_BASE_URL || DEFAULT_HTTP;
+    const DEFAULT_WS = API_BASE_URL.replace(/^http/i, "ws") + "/ws/chat";
+    const WEBSOCKET_URL = ENV.WEBSOCKET_URL || DEFAULT_WS;
 
 
     let conversationHistory = [];
@@ -27,7 +32,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const utterance = new SpeechSynthesisUtterance(cleanText);
         utterance.lang = 'en-US'; // Set language to US English
         utterance.rate = 0.95; // Slightly slower for clarity
-        
+
         // Find a suitable voice
         const voices = window.speechSynthesis.getVoices();
         utterance.voice = voices.find(voice => voice.name === 'Google US English' || voice.name === 'Samantha' || voice.lang === 'en-US');
@@ -191,7 +196,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
         return new Blob([view], { type: 'audio/wav' });
     }
-    
+
     async function toggleRecording() {
         if (isRecording) {
             mediaRecorder.stop();
