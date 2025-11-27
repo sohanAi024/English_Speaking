@@ -8,4 +8,5 @@ python-multipart
 python-engineio
 python-socketio
 starlette
-websockets 
+websockets
+flake8 
